@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ibag's Movie World</title>
+
+<style>
+/* ===== RESET ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    background: #b8c8d6;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ===== SPACING SYSTEM ===== */
+:root {
+    --pad-lg: 48px;
+    --pad-md: 32px;
+    --pad-sm: 20px;
+    --pad-xs: 12px;
+}
+
+/* ===== PAGE GRID ===== */
+.page {
+    height: 100%;
+    padding: var(--pad-lg);
+    display: grid;
+    grid-template-rows: auto 1fr;
+    row-gap: var(--pad-md);
+}
+
+/* ===== HEADER ===== */
+.header {
+    /* enable positioned widgets added by script (butterfly, time-widget) */
+    text-align: center;
+    position: relative;
+    overflow: visible;
+    padding-top: var(--pad-sm);
+    padding-left: var(--pad-md);
+    padding-right: var(--pad-md);
+}
+
+.header h1 {
+    font-size: 38px;
+    letter-spacing: 2px;
+    color: #243241;
+}
+
+/* ===== MAIN CONTENT ===== */
+.content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: var(--pad-lg);
+}
+
+/* ===== LEFT: SLIDESHOW ===== */
+.left {
+    display: flex;
+    justify-content: center;
+}
+
+.slideshow {
+    width: 420px;
+    aspect-ratio: 1 / 1;
+    background: url("/mnt/data/emp.jpg") center / cover no-repeat;
+
+    border-radius: 14px;
+    border: 6px solid #4a5b6b;
+    outline: 4px solid rgba(252, 229, 252, 0.7);
+
+    box-shadow:
+        0 0 28px rgba(252, 229, 252, 0.65),
+        inset 0 0 22px rgba(0,0,0,0.25);
+}
+
+/* ===== RIGHT: MENU ===== */
+.right {
+    display: flex;
+    justify-content: center;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pad-sm);
+}
+
+/* ===== BUTTONS ===== */
+.menu-btn {
+    font-family: Monaco, monospace;
+    font-size: 18px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+
+    padding: var(--pad-sm) var(--pad-md);
+    min-width: 260px;
+    text-align: center;
+    cursor: pointer;
+
+    background: linear-gradient(
+        180deg,
+        rgba(70, 90, 120, 0.85),
+        rgba(40, 55, 80, 0.85)
+    );
+
+    color: #ffffff;
+    border-radius: 10px;
+    border: 2px solid rgba(255,255,255,0.35);
+
+    box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Hover */
+.menu-btn:hover {
+    transform: translateX(-6px);
+}
+
+/* Selected highlight */
+.menu-btn.selected {
+    background: linear-gradient(180deg, #fce5fc, #d7b6e3);
+    color: #2c1e36;
+    border-color: #fce5fc;
+
+    box-shadow:
+        0 0 20px rgba(252, 229, 252, 0.9),
+        0 0 44px rgba(252, 229, 252, 0.55);
+}
+
+/* ===== FOOTER ===== */
+.footer {
+    position: absolute;
+    bottom: var(--pad-sm);
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    color: rgba(0,0,0,0.55);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+    .content {
+        grid-template-columns: 1fr;
+        gap: var(--pad-md);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- HEADER -->
+    <header class="header">
+        <h1>Ibag's Movie World</h1>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+
+        <!-- LEFT -->
+        <div class="left">
+            <div class="slideshow" aria-label="Movie preview">
+                <video
+                    src="/Volumes/Gabi Games/Visual Studio Code Projects/Gabi Media/slideshow.mp4"
+                    autoplay
+                    loop
+                    muted
+                    playsinline
+                    preload="auto"
+                    style="
+                        width:100%;
+                        height:100%;
+                        object-fit:cover;
+                        border-radius:10px;
+                    ">
+                </video>
+            </div>
+        </div>
+
+
+        <!-- RIGHT -->
+        <div class="right">
+            <nav class="menu">
+                <div class="menu-btn selected">Play Movie</div>
+                <div class="menu-btn">Month Selection</div>
+                <div class="menu-btn">Regal Pass Info</div>
+                <div class="menu-btn">Data Summary</div>
+            </nav>
+        </div>
+
+    </main>
+
+<script>
+(function(){
+    // List your local mp4 files (relative or absolute paths)
+    const videos = [
+        "/mnt/data/video1.mp4",
+        "/mnt/data/video2.mp4",
+        "/mnt/data/video3.mp4"
+    ];
+
+    const players = Array.from(document.querySelectorAll(".slideshow .slide-video"));
+    if (!players.length || videos.length === 0) return;
+
+    let current = 0;         // index into videos
+    let front = 0;           // which video element is currently visible (0 or 1)
+
+    // initialize front video
+    players[front].src = videos[current];
+    players[front].currentTime = 0;
+    players[front].loop = false;
+    players[front].play().catch(()=>{ /* autoplay might be blocked */ });
+
+    // preload next into the back video
+    const nextIndex = (current + 1) % videos.length;
+    players[1 - front].src = videos[nextIndex];
+    players[1 - front].loop = false;
+
+    const SWITCH_MS = 8000; // time each clip plays before switching
+
+    function switchToNext() {
+        const next = (current + 1) % videos.length;
+        const backEl = players[1 - front];
+        const frontEl = players[front];
+
+        backEl.src = videos[next];
+        backEl.currentTime = 0;
+        backEl.play().catch(()=>{});
+        // crossfade
+        backEl.style.opacity = "1";
+        frontEl.style.opacity = "0";
+
+        // after transition swap roles
+        front = 1 - front;
+        current = next;
+        // optionally stop the now-hidden video to save resources
+        setTimeout(() => {
+            players[1 - front].pause();
+        }, 700);
+    }
+
+    // switch on interval
+    let timer = setInterval(switchToNext, SWITCH_MS);
+
+    // pause/resume on mouseenter/leave for UX
+    const wrap = document.querySelector(".slideshow");
+    wrap.addEventListener("mouseenter", () => { clearInterval(timer); });
+    wrap.addEventListener("mouseleave", () => {
+        clearInterval(timer);
+        timer = setInterval(switchToNext, SWITCH_MS);
+    });
+
+    // if a video ends unexpectedly switch immediately
+    players.forEach(p => p.addEventListener("ended", () => {
+        switchToNext();
+        clearInterval(timer);
+        timer = setInterval(switchToNext, SWITCH_MS);
+    }));
+})();
+</script>
+</div>
+
+<div class="footer">
+    ↑ ↓ Navigate • Enter Select
+</div>
+
+<script>
+const buttons = document.querySelectorAll(".menu-btn");
+let index = 0;
+
+function updateSelection() {
+    buttons.forEach(btn => btn.classList.remove("selected"));
+    buttons[index].classList.add("selected");
+}
+
+document.addEventListener("keydown", e => {
+    if (e.key === "ArrowDown") {
+        index = (index + 1) % buttons.length;
+        updateSelection();
+    }
+    if (e.key === "ArrowUp") {
+        index = (index - 1 + buttons.length) % buttons.length;
+        updateSelection();
+    }
+    if (e.key === "Enter") {
+        alert("Selected: " + buttons[index].innerText);
+    }
+});
+
+buttons.forEach((btn, i) => {
+    btn.addEventListener("mouseenter", () => {
+        index = i;
+        updateSelection();
+    });
+});
+</script>
+
+
+
+
+</body>
+</html>
