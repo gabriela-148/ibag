@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Homepage</title>
+    <style>
+    /* Desktop-style overrides and widgets (uses !important where needed to override existing rules) */
+    header { padding:8px !important; position:relative; min-height:46px; display:block; }
+    header nav { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); display:flex; gap:12px; z-index:5; }
+    header .butterfly { position:absolute; left:12px; top:8px; width:40px; height:40px; background-image:url('Volumes/Gabi Games/Visual Studio Code Projects/Gabi Media/purple.png'); background-size:contain; background-repeat:no-repeat; background-position:center; pointer-events:none; z-index:6; }
+    header .time-widget { position:absolute; right:12px; top:8px; font-weight:700; color:#fff; background:rgba(0,0,0,0.18); padding:6px 10px; border-radius:8px; font-family:monospace; z-index:6; }
+
+    /* Desktop area grid (six equally spaced folders) */
+    main .desktop-grid { display:grid; grid-template-columns: repeat(6, 1fr); gap:48px; align-items:start; justify-items:center; padding:48px 24px; max-width:1200px; margin:0 auto; box-sizing:border-box; }
+    .folder { display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; cursor:pointer; color:#fff; text-decoration:none; }
+    .folder img { width:96px; height:96px; object-fit:contain; transition:transform .12s ease; border-radius:8px; background:rgba(255,255,255,0.04); padding:8px; }
+    .folder img:hover { transform:translateY(-6px) scale(1.03); }
+    .folder-label { color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.5); font-weight:700; font-size:0.95rem; }
+
+    /* Hide existing hero to avoid duplication (we add desktop grid dynamically) */
+    body.hide-original-hero .hero { display:none !important; }
+
+    /* Responsive adjustments */
+    @media (max-width:1100px) { main .desktop-grid { grid-template-columns: repeat(3, 1fr); gap:36px; } }
+    @media (max-width:600px)  { main .desktop-grid { grid-template-columns: repeat(2, 1fr); gap:24px; } header .butterfly, header .time-widget { display:none; } }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Mark body so original hero is hidden
+        document.body.classList.add('hide-original-hero');
+
+        // Make header easier to target
+        var header = document.querySelector('header');
+        if (header) {
+            header.id = 'desktopHeader';
+            header.style.overflow = 'visible';
+        }
+
+        // Add butterfly area (top-left)
+        if (header && !header.querySelector('.butterfly')) {
+            var butterfly = document.createElement('div');
+            butterfly.className = 'butterfly';
+            header.appendChild(butterfly);
+        }
+
+        // Add time widget (top-right) and update every minute
+        if (header && !header.querySelector('.time-widget')) {
+            var timeWidget = document.createElement('div');
+            timeWidget.className = 'time-widget';
+            header.appendChild(timeWidget);
+            function updateTime() {
+                var now = new Date();
+                timeWidget.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            updateTime();
+            setInterval(updateTime, 60000);
+        }
+
+        // Ensure nav is visually centered (if markup changes exist)
+        var nav = header ? header.querySelector('nav') : null;
+        if (nav) {
+            nav.style.display = 'flex';
+            nav.style.gap = '12px';
+            nav.style.alignItems = 'center';
+        }
+
+        // Create desktop grid with six folders
+        var main = document.querySelector('main');
+        if (!main) return;
+
+        var grid = document.createElement('div');
+        grid.className = 'desktop-grid';
+
+        var folders = [
+            { name: 'Movies', href: 'movies.html' },
+            { name: 'Photos', href: 'photos.html' },
+            { name: 'Documents', href: 'documents.html' },
+            { name: 'Music', href: 'music.html' },
+            { name: 'Projects', href: 'projects.html' },
+            { name: 'Downloads', href: 'downloads.html' }
+        ];
+
+        // Use existing local folder image where available; falls back to a placeholder
+        var folderImg = '/Volumes/Gabi Games/Visual Studio Code Projects/Gabi Media/folder.png';
+        folders.forEach(function (f) {
+            var a = document.createElement('a');
+            a.className = 'folder';
+            a.href = f.href;
+            a.setAttribute('title', f.name);
+
+            var img = document.createElement('img');
+            img.src = folderImg;
+            img.alt = f.name + ' folder';
+
+            var label = document.createElement('div');
+            label.className = 'folder-label';
+            label.textContent = f.name;
+
+            a.appendChild(img);
+            a.appendChild(label);
+            grid.appendChild(a);
+        });
+
+        // Insert grid at top of main (before existing content)
+
+        // Create a cinematic "curtain" overlay that opens and then navigates.
+        (function () {
+            // Helper to create styled element
+            function createEl(tag, css) {
+            var el = document.createElement(tag);
+            Object.assign(el.style, css || {});
+            return el;
+            }
+
+            var overlay = createEl('div', {
+            position: 'fixed',
+            inset: '0',
+            display: 'none',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.6)',
+            zIndex: 99999,
+            pointerEvents: 'auto'
+            });
+            overlay.id = 'curtainOverlay';
+
+            // Stage (background image / video area shown between curtains)
+            var stage = createEl('div', {
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+            });
+            stage.id = 'curtainStage';
+
+            // Optional theater image (replace path with your own)
+            var theaterImg = document.createElement('img');
+            theaterImg.src = '/Volumes/Gabi Games/Visual Studio Code Projects/Gabi Media/theater.jpg'; // replace with your image
+            theaterImg.alt = 'Movie theater';
+            Object.assign(theaterImg.style, {
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+            filter: 'brightness(0.85)'
+            });
+            stage.appendChild(theaterImg);
+
+            // Curtains (left and right)
+            var leftCurtain = createEl('div', {
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '50%',
+            height: '100%',
+            background: 'linear-gradient(90deg,#600 0%, #300 100%)',
+            boxShadow: 'inset -40px 0 120px rgba(0,0,0,0.6)',
+            transform: 'translateX(0%)',
+            transition: 'transform 1100ms cubic-bezier(.22,.9,.27,1)'
+            });
+            var rightCurtain = createEl('div', {
+            position: 'absolute',
+            top: '0',
+            right: '0',
+            width: '50%',
+            height: '100%',
+            background: 'linear-gradient(270deg,#600 0%, #300 100%)',
+            boxShadow: 'inset 40px 0 120px rgba(0,0,0,0.6)',
+            transform: 'translateX(0%)',
+            transition: 'transform 1100ms cubic-bezier(.22,.9,.27,1)'
+            });
+
+            // A subtle spotlight on the stage for effect
+            var spotlight = createEl('div', {
+            position: 'absolute',
+            left: '50%',
+            top: '25%',
+            width: '80%',
+            height: '60%',
+            transform: 'translateX(-50%)',
+            background: 'radial-gradient(ellipse at center, rgba(255,255,220,0.15) 0%, rgba(0,0,0,0) 60%)',
+            pointerEvents: 'none'
+            });
+
+            // Audio element (DO NOT include copyrighted audio here).
+            // Replace 'intro-sound.mp3' with a license-owned or royalty-free audio file.
+            var audio = document.createElement('audio');
+            audio.preload = 'auto';
+            audio.src = '/Volumes/Gabi Games/Visual Studio Code Projects/Gabi Media/intro-sound.mp3'; // replace with your licensed file
+            audio.id = 'curtainAudio';
+
+            // Build overlay
+            overlay.appendChild(stage);
+            overlay.appendChild(spotlight);
+            overlay.appendChild(leftCurtain);
+            overlay.appendChild(rightCurtain);
+            overlay.appendChild(audio);
+            document.body.appendChild(overlay);
+
+            // Play curtains animation and optionally navigate after sequence completes
+            function playCurtainsThenNavigate(url) {
+            // Show overlay
+            overlay.style.display = 'flex';
+
+            // Ensure a small delay so layout settles before animating
+            requestAnimationFrame(function () {
+                // Start audio (click originated, so should be allowed)
+                try { audio.currentTime = 0; audio.play(); } catch (e) { /* autoplay might be blocked if not user gesture */ }
+
+                // Open curtains outward
+                leftCurtain.style.transform = 'translateX(-110%)';
+                rightCurtain.style.transform = 'translateX(110%)';
+
+                // After curtains open, wait a bit then navigate
+                var totalDelay = 1500; // match transition length + small pause
+                setTimeout(function () {
+                // Fade overlay slightly before navigation to smooth transition
+                overlay.style.transition = 'opacity 300ms ease';
+                overlay.style.opacity = '0';
+                setTimeout(function () {
+                    // Restore opacity and hide quickly (in case navigation is prevented)
+                    overlay.style.display = 'none';
+                    overlay.style.opacity = '1';
+                    leftCurtain.style.transform = 'translateX(0%)';
+                    rightCurtain.style.transform = 'translateX(0%)';
+                    // Navigate to the target page
+                    window.location.href = url;
+                }, 300);
+                }, totalDelay);
+            });
+            }
+
+            // Attach to the Movies folder link inside our newly-created grid
+            var moviesLink = grid.querySelector('a[title="Movies"]');
+            if (moviesLink) {
+            moviesLink.addEventListener('click', function (e) {
+                // Use the user click to trigger audio/animation; prevent normal navigation
+                e.preventDefault();
+                var target = moviesLink.href || 'movies.html';
+                playCurtainsThenNavigate(target);
+            });
+            }
+
+            // Accessibility: allow Escape to cancel and hide overlay
+            window.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Escape' && overlay.style.display === 'flex') {
+                audio.pause();
+                overlay.style.display = 'none';
+                leftCurtain.style.transform = 'translateX(0%)';
+                rightCurtain.style.transform = 'translateX(0%)';
+            }
+            });
+        })();
+        main.insertBefore(grid, main.firstChild);
+    });
+    </script>
+    <style>
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; margin:0; color:#222; 
+               background-image: url('/Volumes/Gabi Games/Visual Studio Code Projects/Gabi Media/back.jpg');}
+        header { background:#b8c8d6; color:#fff; padding:20px; }
+        nav a { color:#fff; margin-right:12px; text-decoration:none; font-weight:600; }
+        main { padding:32px; max-width:960px; margin:0 auto; }
+        .hero { display:flex; gap:24px; align-items:center; flex-wrap:wrap; }
+        .hero .content { flex:1 1 320px; }
+        .hero .image { flex:1 1 320px; }
+        .image img { width:50%; height:auto; border-radius:8px; display:block; cursor:pointer; transition:transform .18s ease; position: relative;}
+        .image img:active, .image img:hover { transform:scale(1.02); }
+        footer { padding:16px; text-align:center; color:#666; font-size:0.9rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="content">
+                <h2 id="hero-title">Welcome</h2>
+                <p>Click on any folder to get started.</p>
+            </div>
+
+            <!-- Clickable image that routes to another page -->
+            <div class="image>
+                <!-- Option 1: use a standard anchor around the image (recommended) -->
+                <a href="movies.html" title="Let's go to the Movies!">
+                    <img src="/Volumes/Gabi Games/Visual Studio Code Projects/Gabi Media/folder.png" alt="Featured Movie — click to open">
+                </a>
+
+                <!-- Option 2: JavaScript navigation (uncomment to use) -->
+                <!--
+                <img id="clickable" src="https://via.placeholder.com/640x360.png?text=Click+to+Open+Product" alt="Featured product">
+                <script>
+                    (function () {
+                        var img = document.getElementById('clickable');
+                        if (img) {
+                            img.style.cursor = 'pointer';
+                            img.addEventListener('click', function () {
+                                window.location.href = 'product.html';
+                            });
+                        }
+
+                        // Fit the 6-folder grid into a 3x2 layout over the laptop image
+                        function fitGridToLaptop() {
+                            var grid = document.querySelector('.desktop-grid');
+                            var laptopImg = document.querySelector('.image img') || document.querySelector('.image');
+                            if (!grid || !laptopImg) return;
+
+                            // Layout: 3 columns x 2 rows, tighter gap to fit inside laptop photo
+                            grid.style.display = 'grid';
+                            grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                            grid.style.gridAutoRows = 'auto';
+                            grid.style.gap = '12px';
+                            grid.style.width = '90%';
+                            grid.style.maxWidth = '720px';
+                            grid.style.boxSizing = 'border-box';
+
+                            // Position the grid on top of the laptop image (centered)
+                            var parent = laptopImg.parentElement;
+                            if (parent) parent.style.position = parent.style.position || 'relative';
+                            grid.style.position = 'absolute';
+                            grid.style.left = '50%';
+                            grid.style.top = '50%';
+                            grid.style.transform = 'translate(-50%, -50%)';
+                            grid.style.pointerEvents = 'auto';
+
+                            // Scale grid to fit inside the visible laptop image area
+                            var rect = laptopImg.getBoundingClientRect();
+                            var targetWidth = Math.min(rect.width * 0.9, 720);
+                            grid.style.width = targetWidth + 'px';
+                        }
+
+                        // Run after a short delay so elements exist, and on resize
+                        setTimeout(fitGridToLaptop, 150);
+                        window.addEventListener('resize', fitGridToLaptop);
+                    })();
+                    });
+                </script>
+                -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        © 2025 Ibag's World. All rights reserved.
+    </footer>
+</body>
+</html>
