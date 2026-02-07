@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title> Regal Unlimited Movie Pass</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Reset */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    /* Background video */
+    #bg-video {
+      position: fixed;
+      width: 1875px;  /* fixed design width */
+      height: 1050x; /* fixed design height */
+      margin: 0 auto;
+      object-fit: cover;
+    }
+
+    /* Page content */
+    .container {
+      padding: 30px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    /* Landing link */
+    .center-link {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .center-link a {
+      color: white;
+      font-size: 1.3rem;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* Dashboard fade-in */
+    #dashboard {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.8s ease;
+    }
+
+    #dashboard.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Close dashboard button */
+    #closeDashboard {
+      display: block;
+      margin: 0 auto 20px auto;
+      padding: 10px 20px;
+      background: #F44336;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s;
+    }
+
+    #closeDashboard:hover {
+      background: #d32f2f;
+    }
+
+    /* Metrics */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 30px 0;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0);
+      color: black;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    /* Charts */
+    .chart-box {
+      background: rgba(255, 255, 255, 0);
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 40px;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
+    footer {
+      text-align: center;
+      opacity: 0.8;
+      margin-bottom: 20px;
+    }
+
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      #bg-video {
+        display: none;
+      }
+    }
+
+    /* Hotspots */
+    .hotspot {
+      position: fixed; /* fixed to .stage */
+      display: block;
+      background: rgba(255,255,255,0); /* invisible */
+      border: 2px dashed rgb(255, 71, 71); /* remove later */
+    }
+
+    /* Hotspot positions */
+    #showDashboard { top: 850px; left: 400px; width: 1100px; height: 50px;} /* click here */
+  </style>
+</head>
+
+<body>
+
+  <!-- Background Video -->
+
+  <video autoplay muted loop playsinline id="bg-video">
+    <source src="background.mp4" type="video/mp4">
+  </video>
+  
+
+  <div class="container">
+
+    <h1> Regal Unlimited Movie Pass Dashboard</h1>
+
+    <!-- Landing link -->
+    <div class="center-link">
+      <a href="movie_stats.html" id="showDashboard" class="hotspot"></a>
+    </div>
+
+  </div>
+
+</body>
+</html>
