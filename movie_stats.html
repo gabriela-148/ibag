@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 Regal Unlimited Movie Pass Dashboard</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 30px;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    .back {
+      display: block;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #4CAF50;
+      text-decoration: none;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 30px 0;
+    }
+
+    .card {
+      background: #222;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .chart-box {
+      margin-bottom: 40px;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
+    footer {
+      text-align: center;
+      opacity: 0.7;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <a href="test.html" class="back">← Back to Home</a>
+
+  <h1>Regal Unlimited Movie Pass Dashboard</h1>
+
+  <!-- Metrics -->
+  <div class="metrics">
+    <div class="card">
+      <h3>🎥 Total Movies Watched</h3>
+      <p id="totalVisits">–</p>
+    </div>
+    <div class="card">
+      <h3>📆 Avg Visits / Month</h3>
+      <p id="avgVisits">–</p>
+    </div>
+    <div class="card">
+      <h3>💳 Total Spent</h3>
+      <p id="totalSpent">–</p>
+    </div>
+    <div class="card">
+      <h3>💰 Savings vs Full Price</h3>
+      <p id="savings">–</p>
+    </div>
+  </div>
+
+  <h2>📊 Movies Watched Per Month</h2>
+  <div class="chart-box">
+    <canvas id="visitsChart"></canvas>
+  </div>
+
+  <h2>Cost Comparison</h2>
+  <div class="chart-box">
+    <canvas id="costChart"></canvas>
+  </div>
+
+
+<script>
+/* =====================================================
+   CONSTANTS
+===================================================== */
+const MONTHLY_COST = 26.00;
+const FULL_TICKET_PRICE = 15.99;
+
+/* =====================================================
+   EMBEDDED CSV DATA (FULL, NO TRIMMING, NO DEDUPING)
+===================================================== */
+const csvData = `date,movie
+2025-04-20,Minecraft Movie
+2025-04-21,Pride and Predjudice
+2025-04-23,Pride and Predjudice
+2025-04-28,Star Wars: Revenge of the Sith
+2025-04-29,Star Wars: Revenge of the Sith
+2025-05-01,Thunderbolts*
+2025-05-03,Thunderbolts*
+2025-05-04,Thunderbolts*
+2025-05-10,Thunderbolts*
+2025-05-22,Lilo & Stitch
+2025-06-13,Materialists
+2025-06-20,Materialists
+2025-06-30,Materialists
+2025-06-24,How To Train Your Dragon
+2025-06-28,How To Train Your Dragon
+2025-06-25,F1: The Movie
+2025-06-26,F1: The Movie
+2025-07-05,Jurassic World: Rebirth
+2025-07-10,Superman
+2025-07-16,Superman
+2025-07-24,Fantastic Four: The First Steps
+2025-07-29,Fantastic Four: The First Steps
+2025-08-08,Superman
+2025-08-17,Superman
+2025-08-09,Fantastic Four: The First Steps
+2025-08-23,Harry Potter and the Sorcerer's Stone
+2025-08-24,Harry Potter and the Chamber of Secrets
+2025-08-25,Harry Potter and the Prisoner of Azkaban
+2025-10-05,The Smashing Machine
+2025-10-11,Tron: Ares
+2025-11-02,When Harry Met Sally
+2025-11-09,Regretting You
+2025-11-21,Wicked: For Good
+2025-11-29,Wicked: For Good
+2025-12-05,Eternity
+2025-12-07,Eternity`;
+
+/* =====================================================
+   CSV PARSER (NO DEDUPING)
+===================================================== */
+function parseCSV(csv) {
+  const lines = csv.split("\n").filter(line => line.trim() !== "");
+  const headers = lines.shift().split(",");
+
+  return lines.map(line => {
+    const values = line.split(",");
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = values[i];
+    });
+    return obj;
+  });
+}
+
+const data = parseCSV(csvData);
+
+/* =====================================================
+   METRICS CALCULATION
+===================================================== */
+const visitsPerMonth = {};
+
+data.forEach(row => {
+  const date = new Date(row.date);
+  const monthKey =
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+  visitsPerMonth[monthKey] = (visitsPerMonth[monthKey] || 0) + 1;
+});
+
+const months = Object.keys(visitsPerMonth);
+const visitsArray = Object.values(visitsPerMonth);
+
+const totalVisits = data.length;
+const avgVisits =
+  visitsArray.reduce((sum, v) => sum + v, 0) / visitsArray.length;
+
+const totalSpent = months.length * MONTHLY_COST;
+const fullPriceCost = totalVisits * FULL_TICKET_PRICE;
+const savings = fullPriceCost - totalSpent;
+
+/* =====================================================
+   DOM INFIXES (EXPLICIT BINDINGS — CRITICAL FIX)
+===================================================== */
+const totalVisitsEl = document.getElementById("totalVisits");
+const avgVisitsEl = document.getElementById("avgVisits");
+const totalSpentEl = document.getElementById("totalSpent");
+const savingsEl = document.getElementById("savings");
+
+const visitsChartEl = document.getElementById("visitsChart");
+const costChartEl = document.getElementById("costChart");
+
+/* =====================================================
+   RENDER METRICS
+===================================================== */
+totalVisitsEl.textContent = totalVisits;
+avgVisitsEl.textContent = avgVisits.toFixed(1);
+totalSpentEl.textContent = `$${totalSpent.toFixed(2)}`;
+savingsEl.textContent = `$${savings.toFixed(2)}`;
+
+/* =====================================================
+   CHARTS
+===================================================== */
+new Chart(visitsChartEl, {
+  type: "bar",
+  data: {
+    labels: months,
+    datasets: [{
+      label: "Movies Watched",
+      data: visitsArray,
+      backgroundColor: "#4CAF50"
+    }]
+  }
+});
+
+new Chart(costChartEl, {
+  type: "bar",
+  data: {
+    labels: ["Regal Unlimited", "Full Price Tickets"],
+    datasets: [{
+      data: [totalSpent, fullPriceCost],
+      backgroundColor: ["#2196F3", "#F44336"]
+    }]
+  },
+  options: {
+    plugins: {
+      legend: { display: false }
+    }
+  }
+});
+</script>
+
+</body>
+</html>

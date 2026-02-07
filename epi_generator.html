@@ -1,0 +1,227 @@
+<!doctype html>
+<html>
+<head>
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    overflow: auto; /* allow scrolling */
+    height: 100%;
+}
+
+/* -------------------------------
+   Stage keeps original size
+---------------------------------*/
+.stage { 
+    position: relative; 
+    width: 1920px;  /* fixed design width */
+    height: 1080px; /* fixed design height */ 
+    background-image: url("shows.jpg"); 
+    background-position: top left; 
+    background-repeat: no-repeat; 
+    background-size: cover; 
+}
+
+/* -------------------------------
+   Hotspots
+---------------------------------*/
+.hotspot {
+    position: absolute;
+    display: block;
+    background: rgba(255,255,255,0); /* invisible */
+    border: 2px dashed rgb(255, 71, 71); /* for debugging, remove later */
+}
+
+/* Hotspot positions */
+#link1 { top:90px; left:575px; width:350px; height:430px;} /* Modern Family */
+#link2 { top:90px; left:990px; width:350px; height:430px;} /* Good Place */
+#link3 { top:90px; left:1410px; width:350px; height:430px;} /* Parks */
+#link4 { top:555px; left:580px; width:340px; height:430px;} /* Scandal */
+#link5 { top:555px; left:990px; width:350px; height:430px;} /* Bridgerton */
+#link6 { top:555px; left:1410px; width:340px; height:430px;} /* New Girl */
+
+/* -------------------------------
+   Modal CSS
+---------------------------------*/
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+}
+
+.modal-content button {
+    margin-top: 20px;
+    padding: 10px 18px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* -------------------------------
+   Spin wheel container
+---------------------------------*/
+#wheelContainer {
+    width: 300px;
+    height: 300px;
+    margin: 20px auto 0 auto;
+    position: relative;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+/* Each slice */
+.wheel-slice {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    clip-path: polygon(50% 50%, 100% 0, 100% 100%); /* triangle from center */
+    transform-origin: 50% 50%;
+}
+</style>
+</head>
+<body>
+
+<!-- -------------------------------
+     Stage with Hotspots
+--------------------------------->
+<div class="stage">
+    <a id="link1" class="hotspot"></a>
+    <a id="link2" class="hotspot"></a>
+    <a id="link3" class="hotspot"></a>
+    <a id="link4" class="hotspot"></a>
+    <a id="link5" class="hotspot"></a>
+    <a id="link6" class="hotspot"></a>
+</div>
+
+<!-- -------------------------------
+     Modal
+--------------------------------->
+<div id="episodeModal" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle"></h2>
+        <!-- Spin wheel container -->
+        <div id="wheelContainer"></div>
+        <p id="modalText" style="margin-top:20px; font-size:18px; font-weight:bold;"></p>
+        <button id="closeModal">Close</button>
+    </div>
+</div>
+
+<script>
+// -------------------------------
+// Show data with per-season episodes
+// -------------------------------
+const shows = {
+    link1: { name: "Modern Family", seasons: [24,24,24,24,24,24,22,22,22,18,18] },
+    link2: { name: "The Good Place", seasons: [13,13,13,13] },
+    link3: { name: "Parks and Recreation", seasons: [6,24,16,22,22,22,13] },
+    link4: { name: "Scandal", seasons: [7,22,18,22,21,16,18] },
+    link5: { name: "Bridgerton", seasons: [8,8,8] },
+    link6: { name: "New Girl", seasons: [24,25,23,22,22,22,8] }
+};
+
+// -------------------------------
+// Modal elements
+// -------------------------------
+const modal = document.getElementById("episodeModal");
+const modalTitle = document.getElementById("modalTitle");
+const modalText = document.getElementById("modalText");
+const wheelContainer = document.getElementById("wheelContainer");
+const closeBtn = document.getElementById("closeModal");
+
+// -------------------------------
+// Colors for wheel slices
+// -------------------------------
+const wheelColors = ["#FF4747","#FF9E00","#FFCD00","#00B894","#0984E3","#6C5CE7"];
+
+// -------------------------------
+// Hotspot click logic
+// -------------------------------
+document.querySelectorAll(".hotspot").forEach(link => {
+    link.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        const show = shows[link.id];
+        if (!show) return;
+
+        modalTitle.textContent = show.name;
+        modalText.textContent = ""; // hide episode until spin complete
+
+        // -------------------------------
+        // Build spin wheel
+        // -------------------------------
+        wheelContainer.innerHTML = "";
+        const segments = show.seasons.map((_, i) => `S${i+1}`);
+        const anglePer = 360 / segments.length;
+
+        segments.forEach((text, index) => {
+            const slice = document.createElement('div');
+            slice.className = 'wheel-slice';
+            slice.style.background = wheelColors[index % wheelColors.length];
+            slice.style.transform = `rotate(${anglePer * index}deg)`;
+            wheelContainer.appendChild(slice);
+        });
+
+        // -------------------------------
+        // Spin animation
+        // -------------------------------
+        const spins = 5; // full rotations
+        const selectedSeasonIndex = Math.floor(Math.random() * show.seasons.length);
+        const randomAngle = selectedSeasonIndex * anglePer + Math.random() * anglePer;
+        const totalRotation = spins*360 + randomAngle;
+
+        wheelContainer.style.transition = "transform 3s cubic-bezier(0.33, 1, 0.68, 1)";
+        setTimeout(() => {
+            wheelContainer.style.transform = `rotate(${totalRotation}deg)`;
+        }, 50);
+
+        // -------------------------------
+        // Show episode AFTER spin complete
+        // -------------------------------
+        wheelContainer.addEventListener('transitionend', function handler() {
+            const seasonNumber = selectedSeasonIndex + 1;
+            const episodeCount = show.seasons[selectedSeasonIndex];
+            const episodeNumber = Math.floor(Math.random() * episodeCount) + 1;
+
+            modalText.textContent = `Season ${seasonNumber}, Episode ${episodeNumber}`;
+            wheelContainer.style.transition = ""; // reset for next spin
+            wheelContainer.style.transform = "rotate(0deg)"; // reset visual rotation
+            wheelContainer.removeEventListener('transitionend', handler);
+        });
+
+        modal.style.display = "flex";
+    });
+});
+
+// -------------------------------
+// Close modal
+// -------------------------------
+closeBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+});
+
+// Close modal if click outside content
+modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+});
+</script>
+</body>
+</html>
