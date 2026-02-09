@@ -118,15 +118,15 @@ body {
 
 <body>
 <div class="stage">
-    <a href="movies.html" id="link1" class="hotspot"></a>
+    <a id="link1" class="hotspot"></a>
     <a href="https://github.com/gabriela-148?tab=repositories" id="link2" class="hotspot"></a>
-    <a href="about.html" id="link3" class="hotspot"></a>
+    <a href="movies.html" id="link3" class="hotspot"></a>
     <a id="link4" class="hotspot"></a>
-    <a href="about.html" id="link5" class="hotspot"></a>
-    <a href="about.html" id="link6" class="hotspot"></a>
+    <a id="link5" class="hotspot"></a> 
+    <a id="link6" class="hotspot"></a>
     <a href="epi_generator.html" id="link7" class="hotspot"></a>
     <a href="regal.html" id="link8" class="hotspot"></a>
-    <a href="about.html" id="link9" class="hotspot"></a>
+    <a id="link9" class="hotspot"></a>
     <a href="about.html" id="link10" class="hotspot"></a>
     <a href="resume.html" id="link11" class="hotspot"></a>
 </div>
@@ -153,6 +153,41 @@ body {
   </div>
   
 
+  <!-- giffith DYK fact -->
+<div id="dyk2" class="modal">
+    <div class="modal-content">
+      <h2>Did you know...</h2>
+      <p>
+        Gabi was placed on the Dean's List for 3 semesters in a row?
+        (Spring 2022, Fall 2023, Spring 2024)
+      </p>
+      <button class="close-btn" id="dyk-close2">Got it!</button>
+    </div>
+  </div>
+
+
+  <!-- B DYK fact -->
+<div id="dyk3" class="modal">
+    <div class="modal-content">
+      <h2>Did you know...</h2>
+      <p>
+        Gabi was a member of the Sigma Delta Pi, Spanish Honor Society at Saint Joseph's University?
+      </p>
+      <button class="close-btn" id="dyk-close3">Got it!</button>
+    </div>
+  </div>
+
+  <!-- mabel nose DYK fact -->
+<div id="dyk4" class="modal">
+    <div class="modal-content">
+      <h2>Did you know...</h2>
+      <p>
+        Gabi was a member of the Upsilon Pi Epsilon, Computer Science Honor Society at Saint Joseph's University?
+      </p>
+      <button class="close-btn" id="dyk-close4">Got it!</button>
+    </div>
+  </div>
+
   <script>
     // Show welcome modal on page load
     window.addEventListener("load", function () {
@@ -164,13 +199,44 @@ body {
         document.getElementById('welcomeModal').style.display = 'none'; 
     };
 
+    // stitch button
     document.getElementById("link4").onclick = function () {
         document.getElementById("dyk1").style.display = "flex";
     };
     
+     // giffith button
+     document.getElementById("link5").onclick = function () {
+        document.getElementById("dyk2").style.display = "flex";
+    };
+
+     // b in gabi button
+     document.getElementById("link9").onclick = function () {
+        document.getElementById("dyk3").style.display = "flex";
+    }; 
+    
+    // mabel nose button
+    document.getElementById("link6").onclick = function () {
+        document.getElementById("dyk4").style.display = "flex";
+    };
+
     // Close DYK modal button
     document.getElementById("dyk-close").onclick = function () {
         document.getElementById("dyk1").style.display = "none";
+    };
+
+    // Close DYK modal button
+    document.getElementById("dyk-close2").onclick = function () {
+        document.getElementById("dyk2").style.display = "none";
+    };
+
+    // Close DYK modal button
+    document.getElementById("dyk-close3").onclick = function () {
+        document.getElementById("dyk3").style.display = "none";
+    };
+
+    // Close DYK modal button
+    document.getElementById("dyk-close4").onclick = function () {
+        document.getElementById("dyk4").style.display = "none";
     };
     
     // Close modal when clicking outside content
